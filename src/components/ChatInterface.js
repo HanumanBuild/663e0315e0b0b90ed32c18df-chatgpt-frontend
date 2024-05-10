@@ -7,9 +7,17 @@ export default function ChatInterface() {
   const [input, setInput] = useState('');
 
   const sendMessage = async () => {
-    const response = await axios.post('/api/message', { message: input });
-    setMessages([...messages, { text: input, from: 'user' }, { text: response.data.message, from: 'bot' }]);
-    setInput('');
+    if (!input.trim()) return;  // Prevent sending empty messages
+    const userMessage = { message: input };
+    try {
+      const response = await axios.post(`${process.env.REACT_APP_CHATGPT_BACKEND_URL}/api/message`, userMessage);
+      const botResponse = response.data.message;
+      setMessages([...messages, { text: input, from: 'user' }, { text: botResponse, from: 'bot' }]);
+      setInput('');  // Clear input after sending
+    } catch (error) {
+      console.error('Error sending message:', error);
+      setMessages([...messages, { text: 'Failed to get response from the server.', from: 'bot' }]);
+    }
   };
 
   return (
